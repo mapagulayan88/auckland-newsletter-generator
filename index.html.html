@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auckland Region Newsletter Generator v13</title>
+  <style>
+    :root {
+      --blue:#0b1bb3;
+      --navy:#0a2b63;
+      --gold:#d4af37;
+      --gold-soft:#fff7d6;
+      --border:#d9dde5;
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --danger:#b91c1c;
+      --green-bg:#d1fae5;
+      --green-fg:#065f46;
+      --red-bg:#fee2e2;
+      --red-fg:#991b1b;
+      --feature-bg:#eef4ff;
+      --feature-fg:#0b1bb3;
+      --important-bg:#fff1f2;
+      --important-fg:#9f1239;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; background: var(--bg); color: var(--text); }
+    .app { display: grid; grid-template-columns: minmax(520px, 920px) 1fr; gap: 18px; max-width: 1960px; margin: 0 auto; padding: 18px; }
+    .panel { background: var(--card); border: 1px solid var(--border); border-radius: 18px; box-shadow: 0 6px 18px rgba(0,0,0,.06); overflow: hidden; }
+    .panel-header { padding: 18px 20px; border-bottom: 1px solid var(--border); background: #fff; position: sticky; top: 0; z-index: 2; }
+    .panel-body { padding: 18px; max-height: calc(100vh - 92px); overflow: auto; }
+    h1 { margin: 0 0 6px; font-size: 26px; color: var(--navy); }
+    h2 { font-size: 17px; margin: 24px 0 10px; color: var(--navy); border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+    .help, .muted { color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .note, .hint { background: #fff; border: 1px dashed #c8d0da; border-radius: 12px; padding: 10px 12px; margin-top: 8px; font-size: 13px; color: #374151; }
+    label { display: block; font-weight: 700; margin: 12px 0 6px; }
+    input[type="text"], input[type="email"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%; border: 1px solid #c8d0da; border-radius: 10px; padding: 10px 12px; font: inherit; background: #fff;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    input[type="date"], input[type="time"], select { min-height: 42px; }
+    .row-2, .row-3, .row-4, .row-8 { display: grid; gap: 12px; }
+    .row-2 { grid-template-columns: 1fr 1fr; }
+    .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .row-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .row-8 { grid-template-columns: 1.35fr .9fr .9fr 1.1fr 1fr 1fr 1fr 1fr; }
+    .box, .event-card { border: 1px solid var(--border); background: #fafbfc; border-radius: 14px; padding: 12px; margin: 10px 0; }
+    .thumb { display: block; width: 100%; max-height: 135px; object-fit: contain; border: 1px solid var(--border); border-radius: 10px; background: #fff; margin-top: 8px; }
+    .btnbar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    button { border: none; border-radius: 12px; padding: 11px 14px; font-weight: 700; cursor: pointer; background: #e5e7eb; color: #111827; }
+    button.primary { background: var(--navy); color: #fff; }
+    button.accent { background: var(--blue); color: #fff; }
+    button.warn { background: var(--danger); color: #fff; }
+    .checkline { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .checkline input { width: auto; transform: scale(1.08); }
+    .pill { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .pill-green { background: var(--green-bg); color: var(--green-fg); }
+    .pill-red { background: var(--red-bg); color: var(--red-fg); }
+    .pill-gold { background: var(--gold-soft); color: #7a5b00; border: 1px solid rgba(212,175,55,.45); }
+    .pill-feature { background: var(--feature-bg); color: var(--feature-fg); border: 1px solid rgba(11,27,179,.18); }
+    .pill-important { background: var(--important-bg); color: var(--important-fg); border: 1px solid rgba(159,18,57,.15); }
+    iframe { width: 100%; min-height: calc(100vh - 130px); border: 1px solid var(--border); border-radius: 14px; background: #fff; }
+    .codebox { width: 100%; min-height: 280px; font-family: Consolas, Menlo, monospace; font-size: 12px; white-space: pre; }
+    @media (max-width: 1320px) { .app { grid-template-columns: 1fr; } .panel-body { max-height: none; } iframe { min-height: 900px; } }
+    @media (max-width: 1260px) { .row-8, .row-4, .row-3, .row-2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="app">
+  <section class="panel">
+    <div class="panel-header">
+      <h1>Auckland Region Newsletter Generator v13</h1>
+      <div class="help">Ultimate production build with high-quality images, Outlook-safe header handling, event highlight modes, section toggles, autosave, manual draft export/import, Outlook Web assist, and EML draft export.</div>
+    </div>
+    <div class="panel-body">
+      <h2>Header</h2>
+      <label>Vision line</label>
+      <input id="vision" type="text" value="Vision: To build a synergized region with thriving lodges and united brethren.">
+      <label>Newsletter title</label>
+      <input id="title" type="text" value="Auckland Region Newsletter - May 2026">
+      <div class="row-3">
+        <div class="box"><label>Left header image</label><input id="headerLeft" type="file" accept="image/*"><img id="headerLeftPreview" class="thumb" alt="Left header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerLeft">Remove image</button></div></div>
+        <div class="box"><label>Center header image</label><input id="headerCenter" type="file" accept="image/*"><img id="headerCenterPreview" class="thumb" alt="Center header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerCenter">Remove image</button></div></div>
+        <div class="box"><label>Right header image</label><input id="headerRight" type="file" accept="image/*"><img id="headerRightPreview" class="thumb" alt="Right header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerRight">Remove image</button></div></div>
+      </div>
+      <div class="box"><label>Optional header banner image</label><input id="headerBanner" type="file" accept="image/*"><img id="headerBannerPreview" class="thumb" alt="Header banner preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerBanner">Remove image</button></div></div>
+      <div class="note">Header logos are embedded at original quality. Outlook-safe sizing is applied in the exported HTML using fixed image dimensions rather than canvas scaling.</div>
+
+      <h2>Greeting and body</h2>
+      <label>Greeting</label><input id="greeting" type="text" value="Dear #name#,"><label>Audience note</label><input id="audience" type="text" value="This email has been sent to ALL Brethren in the Auckland Region."><label>Salutation</label><input id="salutation" type="text" value="Fraternal Greetings!"><label>Main body (blank lines create paragraphs)</label><textarea id="mainBody">Firstly, at The Lodge of The Liberal Arts no. 500 installation, I had the honour of installing RW Bro Dennis Waller PGW into the chair of KS.
+
+Secondly, expressions of interest for both Region Charity Officers (RCO) and Region Education Champion (REC) have been emailed to lodge secretaries and have been requested to be forwarded to the brethren within your lodge.</textarea>
+
+      <h2>Quote for the Month</h2>
+      <div class="box">
+        <label class="checkline"><input type="checkbox" id="enableQuote"><span>Enable Quote Section</span></label>
+        <label>Quote Text</label><textarea id="quoteText">The light of Freemasonry guides us toward truth and brotherhood.</textarea>
+        <label>Quote Author</label><input id="quoteAuthor" type="text" value="Unknown">
+      </div>
+
+      <h2>Education Section</h2>
+      <div class="box">
+        <label class="checkline"><input type="checkbox" id="enableEducation"><span>Enable Education Section</span></label>
+        <label>Education Title</label><input id="educationTitle" type="text" value="Masonic Education">
+        <label>Education Content</label><textarea id="educationContent" placeholder="Enter education content..."></textarea>
+      </div>
+
+      <h2>Spotlight on our Brethren</h2>
+      <div class="box">
+        <label class="checkline"><input type="checkbox" id="enableSpotlight"><span>Enable Spotlight Section</span></label>
+        <div class="row-2">
+          <div><label>Spotlight heading banner image</label><input id="spotlightBanner" type="file" accept="image/*"><img id="spotlightBannerPreview" class="thumb" alt="Spotlight banner preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="spotlightBanner">Remove image</button></div></div>
+          <div><label>Spotlight photo image</label><input id="spotlightPhoto" type="file" accept="image/*"><img id="spotlightPhotoPreview" class="thumb" alt="Spotlight photo preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="spotlightPhoto">Remove image</button></div></div>
+        </div>
+        <label>Spotlight heading text fallback</label><input id="spotlightHeading" type="text" value="Spotlight on our Brethren">
+        <label>Spotlight text</label><textarea id="spotlightText">The Most Worshipful Grand Master, MW Bro Paul Chappel and delegation attended the ANCOM 2026 in the Philippines.</textarea>
+        <label>Secondary line</label><input id="craftsmen" type="text" value="The Craftsmen">
+        <label>Tagline</label><input id="tagline" type="text" value="Synergy - Thriving Lodges - United Brethren">
+      </div>
+
+      <h2>Upcoming events</h2>
+      <div class="row-2">
+        <div class="box"><label>Events heading banner image</label><input id="eventsBanner" type="file" accept="image/*"><img id="eventsBannerPreview" class="thumb" alt="Events banner preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="eventsBanner">Remove image</button></div></div>
+        <div><label>Events heading text fallback</label><input id="eventsHeading" type="text" value="Upcoming Events"><label>Events subheading</label><input id="eventsSubheading" type="text" value="Your guide to what’s next in the Auckland Region"></div>
+      </div>
+      <div id="eventsContainer"></div>
+      <div class="btnbar"><button id="addEvent" type="button">+ Add event</button><button id="loadSampleEvents" type="button">Load sample events</button></div>
+
+      <h2>Footer</h2>
+      <div class="row-2">
+        <div><label>Closing</label><input id="closing" type="text" value="Ngā Mihi | Regards"></div>
+        <div class="box"><label>Footer signature image (right side)</label><input id="footerSignatureImage" type="file" accept="image/*"><img id="footerSignatureImagePreview" class="thumb" alt="Footer signature preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="footerSignatureImage">Remove image</button></div></div>
+      </div>
+      <div class="row-3"><div><label>Name</label><input id="senderName" type="text" value="VW Bro Mark Pagulayan"></div><div><label>Title</label><input id="senderTitle" type="text" value="Grand Superintendent Auckland"></div><div><label>Organization</label><input id="orgName" type="text" value="Freemasons New Zealand"></div></div>
+      <div class="row-2"><div><label>Email</label><input id="senderEmail" type="email" value="gsupt.auckland@freemasonsnz.org"></div><div><label>Mobile</label><input id="senderMobile" type="text" value="+64 21 753347"></div></div>
+
+      <h2>Send Automation (Outlook Web + EML)</h2>
+      <div class="box">
+        <div class="row-2"><div><label>Subject</label><input id="mailSubject" type="text" value="Auckland Region Newsletter"></div><div><label>To</label><input id="mailTo" type="text" placeholder="recipient1@example.org; recipient2@example.org"></div></div>
+        <div class="row-2"><div><label>Cc</label><input id="mailCc" type="text" placeholder="optional"></div><div><label>Bcc</label><input id="mailBcc" type="text" placeholder="optional"></div></div>
+        <div class="btnbar">
+          <button class="primary" id="sendOutlookWeb" type="button">Send via Outlook Web</button>
+          <button id="copyHtml" type="button">Copy HTML</button>
+          <button class="accent" id="downloadHtml" type="button">Download .html</button>
+          <button class="accent" id="exportEML" type="button">Export as .EML (Outlook)</button>
+          <button id="saveDraftBtn" type="button">Save Draft</button>
+          <button id="loadDraftBtn" type="button">Load Draft</button>
+          <button id="resetDraftBtn" type="button">Reset / Clear Draft</button>
+        </div>
+        <div class="hint"><strong>Performance notes:</strong> preview updates are debounced for smoother editing; the page autosaves your draft locally and restores it after refresh; manual Save Draft / Load Draft creates and reads JSON draft files. Header logos are preserved at full quality while exported with Outlook-safe fixed dimensions.</div>
+      </div>
+
+      <div class="note muted" id="saveStatus">Autosave is on. Draft changes will be restored after refresh.</div>
+      <h2>Generated HTML</h2>
+      <textarea id="htmlOutput" class="codebox" readonly></textarea>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-body">
+      <h2 style="margin-top:0;color:#0a2b63">Preview</h2>
+      <iframe id="preview"></iframe>
+    </div>
+  </section>
+</div>
+<script>
+const sampleEvents = [
+  {
+    title: 'Presentation of a 60-year service bar to W Bro John Stephenson',
+    date: '2026-05-23',
+    time: '14:00',
+    location: 'Whitianga Lodge Room',
+    eventHighlight: 'Featured Event',
+    lodgeAttire: 'Lounge suit',
+    cateringRsvp: 'Yes',
+    refectoryCost: '$25 per person',
+    glAttire: 'Grand Superintendent regalia',
+    desc: 'At Lodge Whitianga No. 443. A second degree will be conducted for Bro Jack Bangitao and then the presentation of the service bar.'
+  },
+  {
+    title: 'Grand Master’s Visit – 70-year service bar to W Bro Barrie Hopkins',
+    date: '2026-05-25',
+    time: '16:00',
+    location: 'Ellerslie Masonic Centre',
+    eventHighlight: 'Official Visit',
+    lodgeAttire: 'Lounge suit',
+    cateringRsvp: 'No',
+    refectoryCost: '$35 per person',
+    glAttire: 'Grand Lodge regalia',
+    desc: 'At The Lodge of Liberal Arts No. 500. In conjunction with the presentation is a Past Master’s lecture.'
+  }
+];
+
+const imageMap = {
+  headerLeft: 'headerLeftPreview', headerCenter: 'headerCenterPreview', headerRight: 'headerRightPreview',
+  headerBanner: 'headerBannerPreview', spotlightBanner: 'spotlightBannerPreview', spotlightPhoto: 'spotlightPhotoPreview',
+  eventsBanner: 'eventsBannerPreview', footerSignatureImage: 'footerSignatureImagePreview'
+};
+const imgStore = Object.keys(imageMap).reduce((a,k)=>{ a[k]=''; return a; }, {});
+const DRAFT_KEY = 'auckland_region_newsletter_generator_v13_draft';
+const byId = id => document.getElementById(id);
+const esc = t => String(t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+
+function paragraphize(text){
+  return String(text || '').split(/\n\s*\n/).map(t=>t.trim()).filter(Boolean).map(t=>`<p style="margin:0 0 16px;line-height:1.7;color:#1f2937;">${esc(t)}</p>`).join('');
+}
+function formatDateDisplay(v){
+  if(!v) return '';
+  const p=v.split('-');
+  if(p.length!==3) return v;
+  const dt=new Date(Number(p[0]), Number(p[1])-1, Number(p[2]));
+  return dt.toLocaleDateString('en-NZ',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+}
+function formatTimeDisplay(v){
+  if(!v) return '';
+  const [hh,mm] = v.split(':');
+  if(hh==null || mm==null) return v;
+  const h = Number(hh), suffix = h>=12 ? 'PM' : 'AM', hr12 = ((h+11)%12)+1;
+  return `${hr12}:${mm} ${suffix}`;
+}
+
+function importImage(id){
+  const input = byId(id), preview = byId(imageMap[id]);
+  input.addEventListener('change', ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      imgStore[id] = reader.result || ''; // preserve original quality
+      preview.src = imgStore[id];
+      preview.style.display = 'block';
+      updateAll();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function clearImage(id){
+  imgStore[id] = '';
+  const i = byId(id), p = byId(imageMap[id]);
+  i.value='';
+  p.src='';
+  p.style.display='none';
+  updateAll();
+}
+
+function buildEventCard(d={}){
+  const card = document.createElement('div');
+  card.className = 'event-card';
+  card.innerHTML = `
+    <div class="row-8">
+      <div><label>Event title</label><input class="eventTitle" type="text" value="${esc(d.title||'')}"></div>
+      <div><label>Date</label><input class="eventDate" type="date" value="${esc(d.date||'')}"></div>
+      <div><label>Time</label><input class="eventTime" type="time" value="${esc(d.time||'')}"></div>
+      <div><label>Location</label><input class="eventLocation" type="text" value="${esc(d.location||'')}"></div>
+      <div><label>Highlight Mode</label><select class="eventHighlight"><option value=""></option><option value="Featured Event" ${d.eventHighlight==='Featured Event'?'selected':''}>Featured Event</option><option value="Official Visit" ${d.eventHighlight==='Official Visit'?'selected':''}>Official Visit</option><option value="Important" ${d.eventHighlight==='Important'?'selected':''}>Important</option></select></div>
+      <div><label>Lodge Attire</label><input class="eventLodgeAttire" type="text" value="${esc(d.lodgeAttire||'')}"></div>
+      <div><label>RSVP for Catering</label><select class="eventCateringRsvp"><option value=""></option><option value="Yes" ${d.cateringRsvp==='Yes'?'selected':''}>Yes</option><option value="No" ${d.cateringRsvp==='No'?'selected':''}>No</option></select></div>
+      <div><label>Refectory Cost</label><input class="eventRefectoryCost" type="text" value="${esc(d.refectoryCost||'')}"></div>
+    </div>
+    <div class="row-2">
+      <div><label>Grand Lodge Attire</label><input class="eventGLAttire" type="text" value="${esc(d.glAttire||'')}"></div>
+      <div><label>Description</label><textarea class="eventDesc">${esc(d.desc||'')}</textarea></div>
+    </div>
+    <div class="btnbar"><button class="warn removeEvent" type="button">Remove</button></div>`;
+  card.querySelectorAll('input, textarea, select').forEach(el=>{ el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); });
+  card.querySelector('.removeEvent').addEventListener('click', ()=>{ card.remove(); updateAll(); });
+  return card;
+}
+
+function collectFormState(){
+  const s = {};
+  document.querySelectorAll('input, select, textarea').forEach(el=>{
+    if(!el.id) return;
+    if(el.type === 'checkbox') s[el.id] = !!el.checked;
+    else s[el.id] = el.value;
+  });
+  s.events = [...document.querySelectorAll('.event-card')].map(c=>({
+    title: c.querySelector('.eventTitle')?.value || '',
+    date: c.querySelector('.eventDate')?.value || '',
+    time: c.querySelector('.eventTime')?.value || '',
+    location: c.querySelector('.eventLocation')?.value || '',
+    eventHighlight: c.querySelector('.eventHighlight')?.value || '',
+    lodgeAttire: c.querySelector('.eventLodgeAttire')?.value || '',
+    cateringRsvp: c.querySelector('.eventCateringRsvp')?.value || '',
+    refectoryCost: c.querySelector('.eventRefectoryCost')?.value || '',
+    glAttire: c.querySelector('.eventGLAttire')?.value || '',
+    desc: c.querySelector('.eventDesc')?.value || ''
+  }));
+  return s;
+}
+function applyState(s){
+  Object.entries(s).forEach(([k,v])=>{
+    if(k === 'events') return;
+    const el = byId(k);
+    if(!el) return;
+    if(el.type === 'checkbox') el.checked = !!v;
+    else el.value = v ?? '';
+  });
+  if(Array.isArray(s.events)){
+    const c = byId('eventsContainer');
+    c.innerHTML = '';
+    s.events.forEach(ev => c.appendChild(buildEventCard(ev)));
+  }
+}
+function saveDraft(){
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(collectFormState()));
+    const s = byId('saveStatus');
+    if(s) s.textContent = 'Autosave is on. Changes saved locally and will be restored after refresh.';
+  } catch(e){
+    const s = byId('saveStatus');
+    if(s) s.textContent = 'Autosave could not write to local storage in this browser session.';
+  }
+}
+function restoreDraft(){
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if(!raw) return false;
+    applyState(JSON.parse(raw));
+    const st = byId('saveStatus');
+    if(st) st.textContent = 'Draft restored from local autosave.';
+    return true;
+  } catch(e){ return false; }
+}
+function manualSaveDraft(){
+  try {
+    const data = JSON.stringify(collectFormState(), null, 2);
+    const blob = new Blob([data], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'newsletter-draft.json';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    alert('Draft saved to file.');
+  } catch(e){ alert('Unable to save draft.'); }
+}
+function manualLoadDraft(file){
+  const reader = new FileReader();
+  reader.onload = function(){
+    try {
+      applyState(JSON.parse(reader.result));
+      updateAll();
+      alert('Draft loaded successfully.');
+    } catch(e){ alert('Invalid draft file.'); }
+  };
+  reader.readAsText(file);
+}
+function clearDraft(){
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e){}
+}
+function loadSampleEvents(){
+  const c = byId('eventsContainer');
+  c.innerHTML = '';
+  sampleEvents.forEach(ev => c.appendChild(buildEventCard(ev)));
+  updateAll();
+}
+
+function headerImageRow(){
+  if(!imgStore.headerLeft && !imgStore.headerCenter && !imgStore.headerRight) return '';
+  return `<tr><td align="center" style="padding:18px 24px 10px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;table-layout:fixed;border:1px solid #dadee9;background:#fbfcff;"><tr><td width="25%" align="center" style="padding:6px;height:70px;overflow:hidden;">${imgStore.headerLeft?`<img src="${imgStore.headerLeft}" width="100" height="60" style="display:block;height:60px;width:auto;max-width:100px;margin:0 auto;border:0;">`:'&nbsp;'}</td><td width="50%" align="center" style="padding:6px;height:70px;border-left:1px solid #eceff5;border-right:1px solid #eceff5;overflow:hidden;">${imgStore.headerCenter?`<img src="${imgStore.headerCenter}" height="60" style="display:block;height:60px;width:auto;max-width:100%;margin:0 auto;border:0;">`:'&nbsp;'}</td><td width="25%" align="center" style="padding:6px;height:70px;overflow:hidden;">${imgStore.headerRight?`<img src="${imgStore.headerRight}" width="100" height="60" style="display:block;height:60px;width:auto;max-width:100px;margin:0 auto;border:0;">`:'&nbsp;'}</td></tr></table></td></tr>`;
+}
+function buildQuoteHtml(){
+  if(!(byId('enableQuote').checked && byId('quoteText').value.trim())) return '';
+  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #d4af37;background:#fffdf4;padding:14px 16px;font-style:italic;color:#374151;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(212,175,55,.15);text-align:left;margin-left:10px;"><div style="font-size:16px;line-height:1.7;">${esc(byId('quoteText').value)}</div><div style="margin-top:8px;font-weight:bold;color:#0a2b63;">— ${esc(byId('quoteAuthor').value)}</div></div></td></tr>`;
+}
+function buildEducationHtml(){
+  if(!(byId('enableEducation').checked && byId('educationContent').value.trim())) return '';
+  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #0b1bb3;background:#f5f8ff;padding:14px 16px;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);"><div style="font-size:16px;font-weight:bold;color:#0a2b63;margin-bottom:6px;">${esc(byId('educationTitle').value || 'Education')}</div><div style="line-height:1.7;color:#1f2937;">${esc(byId('educationContent').value)}</div></div></td></tr>`;
+}
+function buildSpotlightHtml(){
+  if(!(byId('enableSpotlight').checked && byId('spotlightText').value.trim())) return '';
+  const heading = byId('spotlightHeading').value.trim();
+  return `<tr><td style="padding:10px 24px 0;">${imgStore.spotlightBanner?`<img src="${imgStore.spotlightBanner}" style="width:100%;height:auto;display:block;border:0;">`:`<div style="font-size:26px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 16px;">${esc(heading || 'Spotlight')}</div>`}</td></tr><tr><td style="padding:10px 24px 10px;">${paragraphize(byId('spotlightText').value)}${imgStore.spotlightPhoto?`<div style="text-align:center;margin:12px 0 16px;"><img src="${imgStore.spotlightPhoto}" style="max-width:100%;height:auto;display:block;margin:0 auto;border:0;"></div>`:''}<p style="margin:8px 0 6px;font-weight:bold;color:#1f2937;">${esc(byId('craftsmen').value.trim())}</p><p style="margin:0 0 8px;color:#4b5563;">${esc(byId('tagline').value.trim())}</p></td></tr>`;
+}
+function buildEventHtml(){
+  return [...document.querySelectorAll('.event-card')].map(c=>{
+    const title=c.querySelector('.eventTitle').value.trim(), date=c.querySelector('.eventDate').value.trim(), time=c.querySelector('.eventTime').value.trim(), location=c.querySelector('.eventLocation').value.trim(), highlight=c.querySelector('.eventHighlight').value.trim(), lodgeAttire=c.querySelector('.eventLodgeAttire').value.trim(), cateringRsvp=c.querySelector('.eventCateringRsvp').value.trim(), refectoryCost=c.querySelector('.eventRefectoryCost').value.trim(), glAttire=c.querySelector('.eventGLAttire').value.trim(), desc=c.querySelector('.eventDesc').value.trim();
+    if(!title&&!date&&!time&&!location&&!highlight&&!lodgeAttire&&!glAttire&&!cateringRsvp&&!refectoryCost&&!desc) return '';
+    const cal=[date?`📅 ${esc(formatDateDisplay(date))}`:'', time?`⏰ ${esc(formatTimeDisplay(time))}`:''].filter(Boolean).join('<br>');
+    const rsvp=cateringRsvp?`<span style="display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:${cateringRsvp==='Yes'?'#d1fae5':'#fee2e2'};color:${cateringRsvp==='Yes'?'#065f46':'#991b1b'};">RSVP for Catering: ${esc(cateringRsvp)}</span>`:'';
+    const refr=refectoryCost?`<span style="display:inline-block;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#fff7d6;color:#7a5b00;border:1px solid rgba(212,175,55,.45);">Refectory Cost: ${esc(refectoryCost)}</span>`:'';
+    let tag='', shell='border-left:4px solid #d4af37;padding-left:12px;';
+    if(highlight==='Featured Event'){ tag='<div style="display:inline-block;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:#eef4ff;color:#0b1bb3;font-size:12px;font-weight:700;border:1px solid rgba(11,27,179,.18);">★ Featured Event</div>'; shell='border-left:5px solid #0b1bb3;padding:14px;background:#f7faff;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);'; }
+    else if(highlight==='Official Visit'){ tag='<div style="display:inline-block;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:#fff7d6;color:#7a5b00;font-size:12px;font-weight:700;border:1px solid rgba(212,175,55,.30);">Official Visit</div>'; shell='border-left:5px solid #d4af37;padding:14px;background:#fffdf7;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(212,175,55,.10);'; }
+    else if(highlight==='Important'){ tag='<div style="display:inline-block;margin-bottom:10px;padding:5px 10px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:12px;font-weight:700;border:1px solid rgba(153,27,27,.15);">Important</div>'; shell='border-left:5px solid #991b1b;padding:14px;background:#fffafa;border-radius:12px;box-shadow:inset 0 0 0 1px rgba(153,27,27,.08);'; }
+    return `<tr><td style="padding:18px 24px;border-bottom:1px solid #eeeeee;"><div style="${shell}">${tag}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="top" style="font-size:18px;font-weight:bold;color:#0a2b63;line-height:1.4;padding-right:14px;"><h3 style="margin:0;font-size:18px;line-height:1.4;color:#0a2b63;font-weight:bold;">${esc(title)}</h3></td><td align="right" valign="top" style="font-size:14px;color:#4b5563;line-height:1.6;white-space:nowrap;">${cal}</td></tr></table><div style="margin-top:8px;font-size:14px;line-height:1.7;color:#374151;">${location?`<strong>Location:</strong> ${esc(location)}<br>`:''}${lodgeAttire?`<strong>Lodge Attire:</strong> ${esc(lodgeAttire)}<br>`:''}${glAttire?`<strong>Grand Lodge Attire:</strong> <span style="background:#fff59d;padding:2px 6px;border-radius:4px;display:inline-block;">${esc(glAttire)}</span><br>`:''}</div>${(rsvp||refr)?`<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">${rsvp}${refr}</div>`:''}${desc?`<div style="margin-top:10px;line-height:1.7;color:#1f2937;">${esc(desc)}</div>`:''}</div></td></tr>`;
+  }).join('');
+}
+function buildFooterHtml(){
+  const closing=byId('closing').value.trim(), senderName=byId('senderName').value.trim(), senderTitle=byId('senderTitle').value.trim(), orgName=byId('orgName').value.trim(), senderEmail=byId('senderEmail').value.trim(), senderMobile=byId('senderMobile').value.trim(), img=imgStore.footerSignatureImage;
+  return `<tr><td style="padding:20px 24px 28px;border-top:1px solid #e5e7eb;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="line-height:1.65;color:#1f2937;padding-right:16px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;"><strong>${esc(closing)}</strong></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0 12px;"><p style="margin:0;font-size:18px;font-weight:bold;color:#0a2b63;">${esc(senderName)}</p><p style="margin:2px 0 10px;font-size:16px;font-weight:bold;color:#0a2b63;">${esc(senderTitle)}</p><p style="margin:0;line-height:1.65;color:#1f2937;">${esc(orgName)}<br>E: <a href="mailto:${esc(senderEmail)}" style="color:#0a2b63;text-decoration:none;">${esc(senderEmail)}</a><br>M: ${esc(senderMobile)}</p></td>${img?`<td width="180" valign="middle" align="right"><img src="${img}" style="display:block;margin-left:auto;max-width:160px;max-height:170px;width:auto;height:auto;object-fit:contain;"></td>`:''}</tr></table></td></tr>`;
+}
+function buildHtml(){
+  const title=byId('title').value.trim(), eventsHeading=byId('eventsHeading').value.trim();
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(title)}</title></head><body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f8;margin:0;padding:20px 0;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:700px;max-width:700px;background:#fff;border-collapse:collapse;">${headerImageRow()}${imgStore.headerBanner?`<tr><td align="center" style="padding:0 24px 8px;"><img src="${imgStore.headerBanner}" style="width:100%;height:auto;display:block;border:0;"></td></tr>`:''}<tr><td style="padding:0 24px 10px;"><div style="text-align:center;color:#0b1bb3;font-style:italic;font-size:18px;font-weight:bold;line-height:1.5;">${esc(byId('vision').value.trim())}</div></td></tr><tr><td style="padding:8px 24px 10px;text-align:center;"><div style="font-size:30px;font-weight:bold;color:#0a2b63;line-height:1.2;">${esc(title)}</div></td></tr><tr><td style="padding:8px 24px 10px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('greeting').value.trim())}</p><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('audience').value.trim())}</p><p style="margin:0 0 16px;line-height:1.6;color:#1f2937;"><strong>${esc(byId('salutation').value.trim())}</strong></p>${paragraphize(byId('mainBody').value)}</td></tr>${buildQuoteHtml()}${buildEducationHtml()}${buildSpotlightHtml()}<tr><td style="padding:0 24px 8px;">${imgStore.eventsBanner?`<img src="${imgStore.eventsBanner}" style="width:100%;height:auto;display:block;border:0;">`:`<div style="font-size:26px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 6px;">${esc(eventsHeading)}</div><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 16px;">${esc(byId('eventsSubheading').value.trim())}</div>`}</td></tr>${imgStore.eventsBanner?`<tr><td style="padding:4px 24px 0;"><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 12px;">${esc(byId('eventsSubheading').value.trim())}</div></td></tr>`:''}<tr><td style="padding:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buildEventHtml()}</table></td></tr>${buildFooterHtml()}</table></td></tr></table></body></html>`;
+}
+let __updateTimer=null;
+function renderNow(){ const built = buildHtml(); byId('htmlOutput').value = built; byId('preview').srcdoc = built; }
+function updateAll(){ if(__updateTimer) clearTimeout(__updateTimer); __updateTimer = setTimeout(()=>{ renderNow(); saveDraft(); }, 120); }
+
+Object.keys(imageMap).forEach(importImage);
+document.querySelectorAll('[data-clear-image]').forEach(btn=>btn.addEventListener('click', ()=>clearImage(btn.getAttribute('data-clear-image'))));
+document.querySelectorAll('input, select, textarea').forEach(el=>{ el.addEventListener('input', updateAll); el.addEventListener('change', updateAll); });
+byId('addEvent').addEventListener('click', ()=>{ byId('eventsContainer').appendChild(buildEventCard()); updateAll(); });
+byId('loadSampleEvents').addEventListener('click', loadSampleEvents);
+byId('resetDraftBtn').addEventListener('click', ()=>{ clearDraft(); loadSampleEvents(); });
+byId('saveDraftBtn').addEventListener('click', manualSaveDraft);
+byId('loadDraftBtn').addEventListener('click', ()=>{ const input=document.createElement('input'); input.type='file'; input.accept='.json'; input.onchange=e=>{ const file=e.target.files[0]; if(file) manualLoadDraft(file); }; input.click(); });
+byId('copyHtml').addEventListener('click', async ()=>{ const html=byId('htmlOutput').value; try{ if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){ const item=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([html],{type:'text/plain'})}); await navigator.clipboard.write([item]); } else { await navigator.clipboard.writeText(html); } alert('Newsletter copied to clipboard.'); }catch(e){ alert('Clipboard copy was blocked. Please copy from the Generated HTML box.'); } });
+byId('sendOutlookWeb').addEventListener('click', async ()=>{ const html=byId('htmlOutput').value; try{ if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){ const item=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([html],{type:'text/plain'})}); await navigator.clipboard.write([item]); } else { await navigator.clipboard.writeText(html); } }catch(e){ alert('Clipboard copy was blocked. Please use Copy HTML first, then open Outlook Web manually.'); return; } const to=encodeURIComponent(byId('mailTo').value.trim()), cc=encodeURIComponent(byId('mailCc').value.trim()), bcc=encodeURIComponent(byId('mailBcc').value.trim()), subject=encodeURIComponent(byId('mailSubject').value.trim()||'Auckland Region Newsletter'), body=encodeURIComponent('Click in the message body and press Ctrl + V to paste the newsletter.'); window.open(`https://outlook.office.com/mail/deeplink/compose?subject=${subject}&to=${to}&cc=${cc}&bcc=${bcc}&body=${body}`,'_blank'); setTimeout(()=>alert('Outlook Web compose has opened. Click inside the message body and press Ctrl + V to paste the formatted newsletter.'),650); });
+byId('exportEML').addEventListener('click', ()=>{ const subject=byId('mailSubject').value.trim()||'Auckland Region Newsletter', from=byId('senderEmail').value.trim(), to=byId('mailTo').value.trim(), cc=byId('mailCc').value.trim(), bcc=byId('mailBcc').value.trim(), html=byId('htmlOutput').value; const eml=`From: ${from}\r\nTo: ${to}\r\nCc: ${cc}\r\nBcc: ${bcc}\r\nSubject: ${subject}\r\nX-Unsent: 1\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n${html}`; const blob=new Blob([eml],{type:'message/rfc822'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland-region-newsletter-draft.eml'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+byId('downloadHtml').addEventListener('click', ()=>{ const blob=new Blob([byId('htmlOutput').value],{type:'text/html'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland_region_newsletter_generator_v13.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+
+if(!restoreDraft()){ loadSampleEvents(); } else { renderNow(); }
+</script>
+</body>
+</html>
