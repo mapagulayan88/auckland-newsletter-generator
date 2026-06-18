@@ -106,6 +106,19 @@ Secondly, expressions of interest for both Region Charity Officers (RCO) and Reg
         <label>Education Title</label><input id="educationTitle" type="text" value="Masonic Education">
         <label>Education Content</label><textarea id="educationContent" placeholder="Enter education content..."></textarea>
       </div>
+      <div class="row-2">
+        <div>
+          <label>
+            <input type="checkbox" id="eduIncludeImage">
+            Include Image
+          </label>
+        </div>
+      </div>
+      <div id="eduImageContainer" style="display:none;">
+        <label>Upload Image</label>
+        <input type="file" id="eduImageUpload" accept="image/*">
+        <img id="eduImagePreview" style="max-width:100%; margin-top:10px; display:none; border-radius:10px;">
+      </div>
 
       <h2>Spotlight on our Brethren</h2>
       <div class="box">
