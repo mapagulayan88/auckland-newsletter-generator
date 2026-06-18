@@ -443,42 +443,55 @@ if(!restoreDraft()){ loadSampleEvents(); } else { renderNow(); }
 
 let eduImageBase64 = '';
 
-// handle upload + preview
-byId('eduImageUpload').addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+document.addEventListener('DOMContentLoaded', function () {
 
-  const reader = new FileReader();
+  // ✅ Toggle image container
+  byId('eduIncludeImage').addEventListener('change', (e) => {
+    byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
+  });
 
-  reader.onload = function(evt) {
-    eduImageBase64 = evt.target.result;
+  // ✅ Handle upload + preview
+  byId('eduImageUpload').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = function(evt) {
+      eduImageBase64 = evt.target.result;
+
+      const img = byId('eduImagePreview');
+      img.src = eduImageBase64;
+      img.style.display = 'block';
+
+      // ✅ Show remove button only when image exists
+      byId('eduRemoveImage').style.display = 'inline-block';
+
+      updateAll();
+    };
+
+    reader.readAsDataURL(file);
+  });
+
+  // ✅ Remove image
+  byId('eduRemoveImage').addEventListener('click', () => {
+    eduImageBase64 = '';
 
     const img = byId('eduImagePreview');
-    img.src = eduImageBase64;
-    img.style.display = 'block';
+    img.src = '';
+    img.style.display = 'none';
 
-    updateAll(); // refresh preview
-  };
+    byId('eduImageUpload').value = '';
 
-  reader.readAsDataURL(file);
-});
-``
+    // ✅ Hide button again
+    byId('eduRemoveImage').style.display = 'none';
 
-byId('eduIncludeImage').addEventListener('change', (e) => {
-  byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
-});
-``
+    updateAll();
+  });
 
-byId('eduRemoveImage').addEventListener('click', () => {
-  eduImageBase64 = '';
+  // ✅ Hide remove button initially
+  byId('eduRemoveImage').style.display = 'none';
 
-  const img = byId('eduImagePreview');
-  img.src = '';
-  img.style.display = 'none';
-
-  byId('eduImageUpload').value = ''; // clear file input
-
-  updateAll();
 });
 </script>
 </body>
