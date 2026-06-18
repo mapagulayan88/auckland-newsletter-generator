@@ -383,7 +383,14 @@ function buildQuoteHtml(){
 }
 function buildEducationHtml(){
   if(!(byId('enableEducation').checked && byId('educationContent').value.trim())) return '';
-  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #0b1bb3;background:#f5f8ff;padding:14px 16px;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);"><div style="font-size:16px;font-weight:bold;color:#0a2b63;margin-bottom:6px;">${esc(byId('educationTitle').value || 'Education')}</div><div style="line-height:1.7;color:#1f2937;">${esc(byId('educationContent').value)}</div></div></td></tr>`;
+  const includeImage = byId('eduIncludeImage')?.checked;
+
+  const imageBlock = (includeImage && eduImageBase64)
+    ? `<div style="margin-top:14px;">
+        <img src="${eduImageBase64}" style="width:100%; border-radius:10px; border:2px solid #d4af37;">
+      </div>`
+    : '';
+  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #0b1bb3;background:#f5f8ff;padding:14px 16px;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);"><div style="font-size:16px;font-weight:bold;color:#0a2b63;margin-bottom:6px;">${esc(byId('educationTitle').value || 'Education')}</div><div style="line-height:1.7;color:#1f2937;">${esc(byId('educationContent').value)}</div>${imageBlock}</div></td></tr>`;
 }
 function buildSpotlightHtml(){
   if(!(byId('enableSpotlight').checked && byId('spotlightText').value.trim())) return '';
