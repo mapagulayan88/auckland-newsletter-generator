@@ -119,7 +119,7 @@ Secondly, expressions of interest for both Region Charity Officers (RCO) and Reg
         <input type="file" id="eduImageUpload" accept="image/*">
         <img id="eduImagePreview" style="max-width:100%; margin-top:10px; display:none; border-radius:10px;">
       </div>
-
+      
       <h2>Spotlight on our Brethren</h2>
       <div class="box">
         <label class="checkline"><input type="checkbox" id="enableSpotlight"><span>Enable Spotlight Section</span></label>
@@ -430,6 +430,28 @@ byId('exportEML').addEventListener('click', ()=>{ const subject=byId('mailSubjec
 byId('downloadHtml').addEventListener('click', ()=>{ const blob=new Blob([byId('htmlOutput').value],{type:'text/html'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland_region_newsletter_generator_v13.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
 
 if(!restoreDraft()){ loadSampleEvents(); } else { renderNow(); }
+
+let eduImageBase64 = '';
+
+byId('eduIncludeImage').addEventListener('change', (e) => {
+  byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
+  updateAll();
+});
+
+byId('eduImageUpload').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    eduImageBase64 = evt.target.result;
+    const img = byId('eduImagePreview');
+    img.src = eduImageBase64;
+    img.style.display = 'block';
+    updateAll();
+  };
+  reader.readAsDataURL(file);
+});
 </script>
 </body>
 </html>
