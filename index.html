@@ -462,12 +462,10 @@ byId('eduImageUpload').addEventListener('change', (e) => {
 
   reader.readAsDataURL(file);
 });
-``
 
 byId('eduIncludeImage').addEventListener('change', (e) => {
   byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
 });
-``
 
 byId('eduRemoveImage').addEventListener('click', () => {
   eduImageBase64 = '';
