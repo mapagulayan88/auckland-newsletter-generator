@@ -10,7 +10,7 @@ A browser-based tool for generating Auckland Region Freemasons newsletters with:
 ## How to Use
 
 1. Open the tool:
-   https://yourusername.github.io/auckland-newsletter-generator/
+   https://mapagulayan88.github.io/auckland-newsletter-generator/
 
 2. Fill in the sections:
    - Header
