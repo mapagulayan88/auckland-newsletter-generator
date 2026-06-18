@@ -458,17 +458,49 @@ document.addEventListener('DOMContentLoaded', function () {
     const reader = new FileReader();
 
     reader.onload = function(evt) {
-      eduImageBase64 = evt.target.result;
 
-      const img = byId('eduImagePreview');
-      img.src = eduImageBase64;
-      img.style.display = 'block';
+    const img = new Image();
+    img.onload = function() {
 
-      // ✅ Show remove button only when image exists
+      // ✅ Create canvas
+      const canvas = document.createElement('canvas');
+
+      // ✅ Set MAX size (tweakable)
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 600;
+
+      let width = img.width;
+      let height = img.height;
+
+      // ✅ Resize logic (keeps aspect ratio)
+      if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+        const ratio = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height);
+        width = width * ratio;
+        height = height * ratio;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // ✅ Compression (0.7 is a good balance)
+      eduImageBase64 = canvas.toDataURL('image/jpeg', 0.7);
+
+      // ✅ Preview
+      const preview = byId('eduImagePreview');
+      preview.src = eduImageBase64;
+      preview.style.display = 'block';
+
       byId('eduRemoveImage').style.display = 'inline-block';
 
       updateAll();
     };
+
+  img.src = evt.target.result;
+};
+
 
     reader.readAsDataURL(file);
   });
