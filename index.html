@@ -117,6 +117,7 @@ Secondly, expressions of interest for both Region Charity Officers (RCO) and Reg
       <div id="eduImageContainer" style="display:none;">
         <label>Upload Image</label>
         <input type="file" id="eduImageUpload" accept="image/*">
+        <button type="button" id="eduRemoveImage" style="margin-top:8px;">Remove Image</button>
         <img id="eduImagePreview" style="max-width:100%; margin-top:10px; display:none; border-radius:10px;">
       </div>
       
@@ -440,24 +441,36 @@ if(!restoreDraft()){ loadSampleEvents(); } else { renderNow(); }
 
 let eduImageBase64 = '';
 
-byId('eduIncludeImage').addEventListener('change', (e) => {
-  byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
-  updateAll();
-});
-
+// handle upload + preview
 byId('eduImageUpload').addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
   const reader = new FileReader();
+
   reader.onload = function(evt) {
     eduImageBase64 = evt.target.result;
+
     const img = byId('eduImagePreview');
     img.src = eduImageBase64;
     img.style.display = 'block';
-    updateAll();
+
+    updateAll(); // refresh preview
   };
+
   reader.readAsDataURL(file);
+});
+``
+byId('eduRemoveImage').addEventListener('click', () => {
+  eduImageBase64 = '';
+
+  const img = byId('eduImagePreview');
+  img.src = '';
+  img.style.display = 'none';
+
+  byId('eduImageUpload').value = ''; // clear file input
+
+  updateAll();
 });
 </script>
 </body>
