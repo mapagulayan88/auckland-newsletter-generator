@@ -80,11 +80,6 @@
       <input id="vision" type="text" value="Vision: To build a synergized region with thriving lodges and united brethren.">
       <label>Newsletter title</label>
       <input id="title" type="text" value="Auckland Region Newsletter - May 2026">
-      <div class="row-3">
-        <div class="box"><label>Left header image</label><input id="headerLeft" type="file" accept="image/*"><img id="headerLeftPreview" class="thumb" alt="Left header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerLeft">Remove image</button></div></div>
-        <div class="box"><label>Center header image</label><input id="headerCenter" type="file" accept="image/*"><img id="headerCenterPreview" class="thumb" alt="Center header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerCenter">Remove image</button></div></div>
-        <div class="box"><label>Right header image</label><input id="headerRight" type="file" accept="image/*"><img id="headerRightPreview" class="thumb" alt="Right header preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerRight">Remove image</button></div></div>
-      </div>
       <div class="box"><label>Optional header banner image</label><input id="headerBanner" type="file" accept="image/*"><img id="headerBannerPreview" class="thumb" alt="Header banner preview" style="display:none"><div class="btnbar"><button class="warn" type="button" data-clear-image="headerBanner">Remove image</button></div></div>
       <div class="note">Header logos are embedded at original quality. Outlook-safe sizing is applied in the exported HTML using fixed image dimensions rather than canvas scaling.</div>
 
@@ -201,9 +196,6 @@ const sampleEvents = [
 ];
 
 const imageMap = {
-  headerLeft: 'headerLeftPreview', headerCenter: 'headerCenterPreview', headerRight: 'headerRightPreview',
-  headerBanner: 'headerBannerPreview', spotlightBanner: 'spotlightBannerPreview', spotlightPhoto: 'spotlightPhotoPreview',
-  eventsBanner: 'eventsBannerPreview', footerSignatureImage: 'footerSignatureImagePreview'
 };
 const imgStore = Object.keys(imageMap).reduce((a,k)=>{ a[k]=''; return a; }, {});
 const DRAFT_KEY = 'auckland_region_newsletter_generator_v14_draft';
@@ -400,11 +392,13 @@ function loadSampleEvents(){
 
 
 function headerImageRow(){
+  const HEADER_IMAGE = "https://mapagulayan88.github.io/auckland-newsletter-generator/assets/header.jpg";
+
   return `
   <tr>
     <td align="center" style="padding:18px 24px 10px;">
       <img 
-        src="https://mapagulayan88.github.io/auckland-newsletter-generator/assets/header.jpg" 
+        src="${HEADER_IMAGE}" 
         style="width:100%; height:auto; display:block; border:0;">
     </td>
   </tr>
