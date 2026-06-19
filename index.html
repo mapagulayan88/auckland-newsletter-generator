@@ -72,7 +72,7 @@
   <section class="panel">
     <div class="panel-header">
       <h1>Auckland Region Newsletter Generator v14.2</h1>
-      <div class="help">Ultimate production build with high-quality images, Outlook-safe header handling, event highlight modes, section toggles, autosave, manual draft export/import, Outlook Web assist, and EML draft export.</div>
+      <div class="help">Clean v14.2 build with a single GitHub-hosted header image, compressed uploads for remaining images (including spotlight and footer signature), education image support, Outlook-safe layout, corrected preview rendering, section toggles, autosave, manual draft export/import, Outlook Web assist, and EML draft export.</div>
     </div>
     <div class="panel-body">
       <h2>Header</h2>
@@ -80,7 +80,8 @@
       <input id="vision" type="text" value="Vision: To build a synergized region with thriving lodges and united brethren.">
       <label>Newsletter title</label>
       <input id="title" type="text" value="Auckland Region Newsletter - May 2026">
-      <div class="box"><label>Single header image URL</label><input id="headerImageUrl" type="text" value="https://mapagulayan88.github.io/REPO_NAME/assets/header.jpg?v=1"></div>
+      <div class="box"><label>Single header image URL</label><input id="headerImageUrl" type="text" value="https://mapagulayan88.github.io/auckland-newsletter-generator/assets/header.jpg?v=1"><div class="note">Upload the combined header image to <strong>assets/header.jpg</strong> in GitHub Pages, then replace <strong>REPO_NAME</strong> with the actual repository name. This clean version removes the old left, center, and right header image controls for more consistent Outlook rendering.</div></div>
+      <div class="note">Tip: if you update the same file on GitHub, increment the <strong>?v=1</strong> cache-busting value in the URL to force a refresh.</div>
 
       <h2>Greeting and body</h2>
       <label>Greeting</label><input id="greeting" type="text" value="Dear #name#,"><label>Audience note</label><input id="audience" type="text" value="This email has been sent to ALL Brethren in the Auckland Region."><label>Salutation</label><input id="salutation" type="text" value="Fraternal Greetings!"><label>Main body (blank lines create paragraphs)</label><textarea id="mainBody">Firstly, at The Lodge of The Liberal Arts no. 500 installation, I had the honour of installing RW Bro Dennis Waller PGW into the chair of KS.
@@ -99,6 +100,12 @@ Secondly, expressions of interest for both Region Charity Officers (RCO) and Reg
         <label class="checkline"><input type="checkbox" id="enableEducation"><span>Enable Education Section</span></label>
         <label>Education Title</label><input id="educationTitle" type="text" value="Masonic Education">
         <label>Education Content</label><textarea id="educationContent" placeholder="Enter education content..."></textarea>
+        <label class="checkline"><input type="checkbox" id="eduIncludeImage"><span>Include Education Image</span></label>
+        <div id="eduImageContainer" style="display:none;">
+          <label>Education Image</label><input id="eduImageUpload" type="file" accept="image/*">
+          <img id="eduImagePreview" class="thumb" alt="Education image preview" style="display:none">
+          <div class="btnbar"><button class="warn" type="button" id="eduRemoveImage">Remove image</button></div>
+        </div>
       </div>
 
       <h2>Spotlight on our Brethren</h2>
@@ -188,12 +195,11 @@ const sampleEvents = [
 ];
 
 const imageMap = {
-  headerLeft: 'headerLeftPreview', headerCenter: 'headerCenterPreview', headerRight: 'headerRightPreview',
-  headerBanner: 'headerBannerPreview', spotlightBanner: 'spotlightBannerPreview', spotlightPhoto: 'spotlightPhotoPreview',
+  spotlightBanner: 'spotlightBannerPreview', spotlightPhoto: 'spotlightPhotoPreview',
   eventsBanner: 'eventsBannerPreview', footerSignatureImage: 'footerSignatureImagePreview'
 };
 const imgStore = Object.keys(imageMap).reduce((a,k)=>{ a[k]=''; return a; }, {});
-const DRAFT_KEY = 'auckland_region_newsletter_generator_v14.2_draft';
+const DRAFT_KEY = 'auckland_region_newsletter_generator_v14_2_draft';
 const byId = id => document.getElementById(id);
 const esc = t => String(t || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
 
@@ -215,19 +221,52 @@ function formatTimeDisplay(v){
   return `${hr12}:${mm} ${suffix}`;
 }
 
+function compressImageFile(file, options={}){
+  const { maxWidth = 1600, maxHeight = 1200, quality = 0.82, mimeType = 'image/jpeg' } = options;
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Unable to read image file.'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Unable to load image.'));
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL(mimeType, quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+let eduImageBase64 = '';
+
 function importImage(id){
   const input = byId(id), preview = byId(imageMap[id]);
-  input.addEventListener('change', ()=>{
+  input.addEventListener('change', async ()=>{
     const file = input.files && input.files[0];
     if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      imgStore[id] = reader.result || ''; // preserve original quality
+    try {
+      let options = { maxWidth: 1600, maxHeight: 1200, quality: 0.82, mimeType: 'image/jpeg' };
+      if(id === 'footerSignatureImage') options = { maxWidth: 500, maxHeight: 300, quality: 0.8, mimeType: 'image/jpeg' };
+      const compressed = await compressImageFile(file, options);
+      imgStore[id] = compressed || '';
       preview.src = imgStore[id];
       preview.style.display = 'block';
       updateAll();
-    };
-    reader.readAsDataURL(file);
+    } catch (e) {
+      alert('Unable to process the selected image.');
+    }
   });
 }
 function clearImage(id){
@@ -358,7 +397,6 @@ function headerImageRow(){
   const url = (byId('headerImageUrl')?.value || '').trim();
   if(!url) return '';
   return `<tr><td align="center" style="padding:18px 24px 10px;"><img src="${url}" style="width:100%;height:auto;display:block;border:0;"></td></tr>`;
-}" width="100" height="60" style="display:block;height:60px;width:auto;max-width:100px;margin:0 auto;border:0;">`:'&nbsp;'}</td><td width="50%" align="center" style="padding:6px;height:70px;border-left:1px solid #eceff5;border-right:1px solid #eceff5;overflow:hidden;">${imgStore.headerCenter?`<img src="${imgStore.headerCenter}" height="60" style="display:block;height:60px;width:auto;max-width:100%;margin:0 auto;border:0;">`:'&nbsp;'}</td><td width="25%" align="center" style="padding:6px;height:70px;overflow:hidden;">${imgStore.headerRight?`<img src="${imgStore.headerRight}" width="100" height="60" style="display:block;height:60px;width:auto;max-width:100px;margin:0 auto;border:0;">`:'&nbsp;'}</td></tr></table></td></tr>`;
 }
 function buildQuoteHtml(){
   if(!(byId('enableQuote').checked && byId('quoteText').value.trim())) return '';
@@ -366,7 +404,11 @@ function buildQuoteHtml(){
 }
 function buildEducationHtml(){
   if(!(byId('enableEducation').checked && byId('educationContent').value.trim())) return '';
-  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #0b1bb3;background:#f5f8ff;padding:14px 16px;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);"><div style="font-size:16px;font-weight:bold;color:#0a2b63;margin-bottom:6px;">${esc(byId('educationTitle').value || 'Education')}</div><div style="line-height:1.7;color:#1f2937;">${esc(byId('educationContent').value)}</div></div></td></tr>`;
+  const includeImage = byId('eduIncludeImage')?.checked;
+  const imageBlock = (includeImage && eduImageBase64)
+    ? `<div style="margin-top:14px;"><img src="${eduImageBase64}" style="max-width:500px;width:100%;height:auto;display:block;margin:12px auto 0;border-radius:10px;border:2px solid #d4af37;"></div>`
+    : '';
+  return `<tr><td style="padding:8px 24px 14px;"><div style="border-left:5px solid #0b1bb3;background:#f5f8ff;padding:14px 16px;border-radius:0 14px 14px 0;box-shadow:inset 0 0 0 1px rgba(11,27,179,.08);"><div style="font-size:16px;font-weight:bold;color:#0a2b63;margin-bottom:6px;">${esc(byId('educationTitle').value || 'Education')}</div><div style="line-height:1.7;color:#1f2937;">${esc(byId('educationContent').value)}</div>${imageBlock}</div></td></tr>`;
 }
 function buildSpotlightHtml(){
   if(!(byId('enableSpotlight').checked && byId('spotlightText').value.trim())) return '';
@@ -389,11 +431,11 @@ function buildEventHtml(){
 }
 function buildFooterHtml(){
   const closing=byId('closing').value.trim(), senderName=byId('senderName').value.trim(), senderTitle=byId('senderTitle').value.trim(), orgName=byId('orgName').value.trim(), senderEmail=byId('senderEmail').value.trim(), senderMobile=byId('senderMobile').value.trim(), img=imgStore.footerSignatureImage;
-  return `<tr><td style="padding:20px 24px 28px;border-top:1px solid #e5e7eb;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="line-height:1.65;color:#1f2937;padding-right:16px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;"><strong>${esc(closing)}</strong></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0 12px;"><p style="margin:0;font-size:18px;font-weight:bold;color:#0a2b63;">${esc(senderName)}</p><p style="margin:2px 0 10px;font-size:16px;font-weight:bold;color:#0a2b63;">${esc(senderTitle)}</p><p style="margin:0;line-height:1.65;color:#1f2937;">${esc(orgName)}<br>E: <a href="mailto:${esc(senderEmail)}" style="color:#0a2b63;text-decoration:none;">${esc(senderEmail)}</a><br>M: ${esc(senderMobile)}</p></td>${img?`<td width="180" valign="middle" align="right"><img src="${img}" style="display:block;margin-left:auto;max-width:120px;max-height:170px;width:auto;height:auto;object-fit:contain;"></td>`:''}</tr></table></td></tr>`;
+  return `<tr><td style="padding:20px 24px 28px;border-top:1px solid #e5e7eb;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="middle" style="line-height:1.65;color:#1f2937;padding-right:16px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;"><strong>${esc(closing)}</strong></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:10px 0 12px;"><p style="margin:0;font-size:18px;font-weight:bold;color:#0a2b63;">${esc(senderName)}</p><p style="margin:2px 0 10px;font-size:16px;font-weight:bold;color:#0a2b63;">${esc(senderTitle)}</p><p style="margin:0;line-height:1.65;color:#1f2937;">${esc(orgName)}<br>E: <a href="mailto:${esc(senderEmail)}" style="color:#0a2b63;text-decoration:none;">${esc(senderEmail)}</a><br>M: ${esc(senderMobile)}</p></td>${img?`<td width="180" valign="middle" align="right"><img src="${img}" style="display:block;margin-left:auto;max-width:120px;max-height:110px;width:auto;height:auto;object-fit:contain;"></td>`:''}</tr></table></td></tr>`;
 }
 function buildHtml(){
   const title=byId('title').value.trim(), eventsHeading=byId('eventsHeading').value.trim();
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(title)}</title></head><body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f8;margin:0;padding:20px 0;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:700px;max-width:700px;background:#fff;border-collapse:collapse;">${headerImageRow()}${imgStore.headerBanner?`<tr><td align="center" style="padding:0 24px 8px;"><img src="${imgStore.headerBanner}" style="width:100%;height:auto;display:block;border:0;"></td></tr>`:''}<tr><td style="padding:0 24px 10px;"><div style="text-align:center;color:#0b1bb3;font-style:italic;font-size:18px;font-weight:bold;line-height:1.5;">${esc(byId('vision').value.trim())}</div></td></tr><tr><td style="padding:8px 24px 10px;text-align:center;"><div style="font-size:30px;font-weight:bold;color:#0a2b63;line-height:1.2;">${esc(title)}</div></td></tr><tr><td style="padding:8px 24px 10px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('greeting').value.trim())}</p><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('audience').value.trim())}</p><p style="margin:0 0 16px;line-height:1.6;color:#1f2937;"><strong>${esc(byId('salutation').value.trim())}</strong></p>${paragraphize(byId('mainBody').value)}</td></tr>${buildQuoteHtml()}${buildEducationHtml()}${buildSpotlightHtml()}<tr><td style="padding:0 24px 8px;">${imgStore.eventsBanner?`<img src="${imgStore.eventsBanner}" style="width:100%;height:auto;display:block;border:0;">`:`<div style="font-size:26px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 6px;">${esc(eventsHeading)}</div><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 16px;">${esc(byId('eventsSubheading').value.trim())}</div>`}</td></tr>${imgStore.eventsBanner?`<tr><td style="padding:4px 24px 0;"><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 12px;">${esc(byId('eventsSubheading').value.trim())}</div></td></tr>`:''}<tr><td style="padding:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buildEventHtml()}</table></td></tr>${buildFooterHtml()}</table></td></tr></table></body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${esc(title)}</title></head><body style="margin:0;padding:0;background:#f4f6f8;font-family:Arial,Helvetica,sans-serif;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f8;margin:0;padding:20px 0;"><tr><td align="center"><table role="presentation" width="700" cellpadding="0" cellspacing="0" border="0" style="width:700px;max-width:700px;background:#fff;border-collapse:collapse;">${headerImageRow()}<tr><td style="padding:0 24px 10px;"><div style="text-align:center;color:#0b1bb3;font-style:italic;font-size:18px;font-weight:bold;line-height:1.5;">${esc(byId('vision').value.trim())}</div></td></tr><tr><td style="padding:8px 24px 10px;text-align:center;"><div style="font-size:30px;font-weight:bold;color:#0a2b63;line-height:1.2;">${esc(title)}</div></td></tr><tr><td style="padding:8px 24px 10px;"><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('greeting').value.trim())}</p><p style="margin:0 0 14px;line-height:1.6;color:#1f2937;">${esc(byId('audience').value.trim())}</p><p style="margin:0 0 16px;line-height:1.6;color:#1f2937;"><strong>${esc(byId('salutation').value.trim())}</strong></p>${paragraphize(byId('mainBody').value)}</td></tr>${buildQuoteHtml()}${buildEducationHtml()}${buildSpotlightHtml()}<tr><td style="padding:0 24px 8px;">${imgStore.eventsBanner?`<img src="${imgStore.eventsBanner}" style="width:100%;height:auto;display:block;border:0;">`:`<div style="font-size:26px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 6px;">${esc(eventsHeading)}</div><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 16px;">${esc(byId('eventsSubheading').value.trim())}</div>`}</td></tr>${imgStore.eventsBanner?`<tr><td style="padding:4px 24px 0;"><div style="font-size:16px;color:#0b1bb3;font-weight:bold;text-align:center;margin:0 0 12px;">${esc(byId('eventsSubheading').value.trim())}</div></td></tr>`:''}<tr><td style="padding:0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${buildEventHtml()}</table></td></tr>${buildFooterHtml()}</table></td></tr></table></body></html>`;
 }
 let __updateTimer=null;
 function renderNow(){ const built = buildHtml(); byId('htmlOutput').value = built; byId('preview').srcdoc = built; }
@@ -410,9 +452,46 @@ byId('loadDraftBtn').addEventListener('click', ()=>{ const input=document.create
 byId('copyHtml').addEventListener('click', async ()=>{ const html=byId('htmlOutput').value; try{ if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){ const item=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([html],{type:'text/plain'})}); await navigator.clipboard.write([item]); } else { await navigator.clipboard.writeText(html); } alert('Newsletter copied to clipboard.'); }catch(e){ alert('Clipboard copy was blocked. Please copy from the Generated HTML box.'); } });
 byId('sendOutlookWeb').addEventListener('click', async ()=>{ const html=byId('htmlOutput').value; try{ if(window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write){ const item=new ClipboardItem({'text/html':new Blob([html],{type:'text/html'}),'text/plain':new Blob([html],{type:'text/plain'})}); await navigator.clipboard.write([item]); } else { await navigator.clipboard.writeText(html); } }catch(e){ alert('Clipboard copy was blocked. Please use Copy HTML first, then open Outlook Web manually.'); return; } const to=encodeURIComponent(byId('mailTo').value.trim()), cc=encodeURIComponent(byId('mailCc').value.trim()), bcc=encodeURIComponent(byId('mailBcc').value.trim()), subject=encodeURIComponent(byId('mailSubject').value.trim()||'Auckland Region Newsletter'), body=encodeURIComponent('Click in the message body and press Ctrl + V to paste the newsletter.'); window.open(`https://outlook.office.com/mail/deeplink/compose?subject=${subject}&to=${to}&cc=${cc}&bcc=${bcc}&body=${body}`,'_blank'); setTimeout(()=>alert('Outlook Web compose has opened. Click inside the message body and press Ctrl + V to paste the formatted newsletter.'),650); });
 byId('exportEML').addEventListener('click', ()=>{ const subject=byId('mailSubject').value.trim()||'Auckland Region Newsletter', from=byId('senderEmail').value.trim(), to=byId('mailTo').value.trim(), cc=byId('mailCc').value.trim(), bcc=byId('mailBcc').value.trim(), html=byId('htmlOutput').value; const eml=`From: ${from}\r\nTo: ${to}\r\nCc: ${cc}\r\nBcc: ${bcc}\r\nSubject: ${subject}\r\nX-Unsent: 1\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit\r\n\r\n${html}`; const blob=new Blob([eml],{type:'message/rfc822'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland-region-newsletter-draft.eml'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
-byId('downloadHtml').addEventListener('click', ()=>{ const blob=new Blob([byId('htmlOutput').value],{type:'text/html'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland_region_newsletter_generator_v14.2.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+byId('downloadHtml').addEventListener('click', ()=>{ const blob=new Blob([byId('htmlOutput').value],{type:'text/html'}), url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download='auckland_region_newsletter_generator_v14_2.html'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); });
+
+byId('eduIncludeImage').addEventListener('change', (e)=>{
+  byId('eduImageContainer').style.display = e.target.checked ? 'block' : 'none';
+  if(!e.target.checked){
+    eduImageBase64 = '';
+    byId('eduImageUpload').value = '';
+    byId('eduImagePreview').src = '';
+    byId('eduImagePreview').style.display = 'none';
+    byId('eduRemoveImage').style.display = 'none';
+    updateAll();
+  }
+});
+byId('eduImageUpload').addEventListener('change', async (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  try {
+    eduImageBase64 = await compressImageFile(file, { maxWidth: 1200, maxHeight: 900, quality: 0.78, mimeType: 'image/jpeg' });
+    const img = byId('eduImagePreview');
+    img.src = eduImageBase64;
+    img.style.display = 'block';
+    byId('eduRemoveImage').style.display = 'inline-block';
+    updateAll();
+  } catch (e) {
+    alert('Unable to process the education image.');
+  }
+});
+byId('eduRemoveImage').addEventListener('click', ()=>{
+  eduImageBase64 = '';
+  const img = byId('eduImagePreview');
+  img.src = '';
+  img.style.display = 'none';
+  byId('eduImageUpload').value = '';
+  byId('eduRemoveImage').style.display = 'none';
+  updateAll();
+});
+byId('eduRemoveImage').style.display = 'none';
 
 if(!restoreDraft()){ loadSampleEvents(); } else { renderNow(); }
+byId('eduImageContainer').style.display = byId('eduIncludeImage').checked ? 'block' : 'none';
 </script>
 </body>
 </html>
